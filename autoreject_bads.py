@@ -3,12 +3,16 @@ import mne
 import matplotlib.pyplot as plt
 from collections import Counter
 
+#Rejecting criteria
+#Channels above certain standard deviation (2 or 3 std above)
+#Higher limit of electrophysiological signal 
+#50% of the time bad contact
 """
 For the report, the following should be marked
 1. What channels are marked bad + total #
 2. percentage of region thrown out (ch in specific region. ex. frontal)
 """
-def autoreject_bads_ch(signal, report, zscore_thresh, n_fft=2048, fmax=45.0):
+def autoreject_bads_ch(signal, report, zscore_thresh, samp_freq, n_fft=2048, fmax=45.0):
     #mne picks
     picks = mne.pick_types(signal.info, eeg=True, exclude='bads')
 
@@ -18,8 +22,11 @@ def autoreject_bads_ch(signal, report, zscore_thresh, n_fft=2048, fmax=45.0):
     ch_names = spectrum.ch_names
     
     #specific window of frequencies of interest
-    psd_scaled = np.array(psd*1e12)[:,24:]
-    freq = freq[24:]
+    # psd_scaled = np.array(psd*1e12)[:,24:]
+    # freq = freq[24:]
+    psd_scaled = np.array(psd*1e12)
+    freq = freq
+
     mean_ch_power = np.mean(psd_scaled, axis=0) #scalar val per channel (only eeg)
     median_ch_power = np.median(psd_scaled, axis=0) #scalar val per channel (only eeg)
 
@@ -31,21 +38,59 @@ def autoreject_bads_ch(signal, report, zscore_thresh, n_fft=2048, fmax=45.0):
     #calculate the % of bad ch in the observed window
     length = len(freq) 
     counts = Counter(bad_indices)
-    bads = [int(item) for item, count in counts.items() if count/length > 0.40]
+    bads = [int(item) for item, count in counts.items() if count/length >= 0.50]
     bad_ch = [ch_names[bad] for bad in bads]
 
     #detect bad contact via peak-to-peak calculation
     data = signal.get_data(picks='eeg')
-    min_data = np.min(data, axis=1)
-    max_data = np.max(data, axis=1)
+    # min_data = np.min(data, axis=1)
+    # max_data = np.max(data, axis=1)
 
-    #lower bound
-    bad_lower_bound = np.where((max_data - min_data) <= 5e-6)[0] #np.where() returns a tuple (unpack the tuple)
-    bad_upper_bound = np.where((max_data - min_data) >= 500e-6)[0]
-    bad_bounds_idx = np.concatenate((bad_lower_bound, bad_upper_bound), axis=0)
+    n_ch, n_points = data.shape
+    step = samp_freq*10 #10 second epoch
+    total_step = n_points//step
+    
+    # bad_contact_dic = {i:0 for i in range(n_ch)}
+    bad_contact_counts = np.zeros(n_ch, dtype=int)
+    for i in range(0, n_points, step):
+        epoch = data[:,i:i+step]
+        #per epoch calculate min & max + index
+        min_data = np.min(epoch, axis=1)
+        max_data = np.max(epoch, axis=1)
+        bad_lower_bound = np.where((max_data - min_data) <= 5e-6)[0] #np.where() returns a tuple (unpack the tuple)
+        bad_upper_bound = np.where((max_data - min_data) >= 500e-6)[0]
+
+        #Evaluates the quality of the channel (temporal)
+        if bad_lower_bound is not []:
+            bad_contact_counts[bad_lower_bound] += 1
+        if bad_upper_bound is not []:
+            bad_contact_counts[bad_upper_bound] += 1
+        print('Upper bound: ', bad_upper_bound)
+        print('Lower bound: ', bad_lower_bound)
+
+        #Evaluates the quality of the channel for each epoch
+        #Ex if for one epoch there are 50%> bad contacts mark it bad and drop it later
+        #Should this be implemented or no????
+
+    #calculate how bad
+    print(bad_contact_counts)
+    bad_contact_prob = bad_contact_counts/total_step
+    bad_bounds_idx = np.where(bad_contact_prob >= 0.5)[0]
     bad_bound_ch = [ch_names[b] for b in bad_bounds_idx]
 
+
+    """Segmented p2p calculation"""
+
+
+    #lower bound
+    # bad_lower_bound = np.where((max_data - min_data) <= 5e-6)[0] #np.where() returns a tuple (unpack the tuple)
+    # bad_upper_bound = np.where((max_data - min_data) >= 500e-6)[0]
+    # bad_bounds_idx = np.concatenate((bad_lower_bound, bad_upper_bound), axis=0)
+    # bad_bound_ch = [ch_names[b] for b in bad_bounds_idx]
+    
+
     bad_ch_names = list(set(bad_bound_ch + bad_ch))
+    # bad_ch_names = bad_ch
     ratio = len(bad_ch_names)/len(ch_names)
     if ratio > 0.3:
         alert_html = f"""
