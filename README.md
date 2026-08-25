@@ -84,3 +84,4 @@ After selecting the input and output directory, click on the run button and chos
 Intended usage for the GUI:  
 Run preprocessing first, then indicate the input and output dir for hyperscanning analysis and pick the hyperscanning mode then run the script.  
 
+(Reminder: Why is the image so big??, fix preprocessing for hyperscan load two files & simultaneous edits)
