@@ -84,4 +84,14 @@ After selecting the input and output directory, click on the run button and chos
 Intended usage for the GUI:  
 Run preprocessing first, then indicate the input and output dir for hyperscanning analysis and pick the hyperscanning mode then run the script.  
 
+## Dependencies
+All of required packages to create the environment are under env folder.  
+To create the conda env, run the following command in the terminal (make sure to have miniconda or conda installed).  
+```bash
+conda env create -f environment.yml
+pip install -r requirements.txt
+```
+Make sure when running this command, the user is under env directory!  
+
+
 (Reminder: Why is the image so big??, fix preprocessing for hyperscan load two files & simultaneous edits)

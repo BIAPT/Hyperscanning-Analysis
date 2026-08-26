@@ -1,0 +1,10 @@
+name: hyper
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - mne-icalabel
+  - neurokit2
+  - antio
+  - defusedxml
+prefix: /Users/andrewlee/miniconda3/envs/hyper
