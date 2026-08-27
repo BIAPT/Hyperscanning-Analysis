@@ -6,13 +6,17 @@ from mne_icalabel import label_components
 import matplotlib.pyplot as plt
 import numpy as np
 from autoreject import AutoReject #Auto rejecting bad epoch
+import autoreject_bads as ar #custom autoreject
 import pandas as pd
 
 """
 Preprocessing steps
 GOAL:
-Make it so that this preprocessing pipeline works for BIDS structures
-Currently only work for CARTBIND (Nested Structure)
+Works on custom nested folder structure
+Change the annotation logic
+Call autoreject_bads_ch internally 
+Important!!!
+Will there be an HEOG VEOG channel or no?
 """
 
 #Epoching

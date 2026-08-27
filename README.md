@@ -93,5 +93,7 @@ pip install -r requirements.txt
 ```
 Make sure when running this command, the user is under env directory!  
 
+## Protocol
+Lastly, for students carrying out the Hyperscanning experiment, please take a look at the protocol.txt for detailed instructions on how to structure the format for NetStation.  (protocol may change over time). 
 
 (Reminder: Why is the image so big??, fix preprocessing for hyperscan load two files & simultaneous edits)

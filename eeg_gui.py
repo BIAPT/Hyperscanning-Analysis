@@ -72,6 +72,10 @@ class EEGApp(ctk.CTk):
         ctk.CTkRadioButton(frame, text="EEG Preprocessing", variable=self.reg_mode, value=0).grid(row=1, column=2, sticky="w", padx=(15, 20), pady=8)
         ctk.CTkRadioButton(frame, text="Hyperscanning", variable=self.reg_mode, value=1).grid(row=2, column=2, sticky="w", padx=(15, 20), pady=8)
 
+        # #Which frequency band? (This is maybe!!)
+        # ctk.CTkLabel(frame, text="Frequency bands").grid(row=0, column=3, sticky="w", padx=(15, 20), pady=(10, 15))
+        
+
 
     def directory(self, folder_type):
         path = filedialog.askdirectory()

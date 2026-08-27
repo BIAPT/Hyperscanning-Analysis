@@ -47,3 +47,19 @@ for key,value in annot_dic.items():
     onset_dic[key] = read_mff.annotations.onset[mask]
 
 print(onset_dic)
+data = read_mff.get_data()
+print(data[-5])
+read_RAW.plot(block=True)
+
+
+from hypyp import analyses
+"""Testing PLV"""
+# analyses.pair_connectivity(
+#     ,
+# )
+"""
+Functional connectivity between x and y 
+y constant & choose random point in x & swap first and second (spectral property)
+Destropy time coreelation
+Real & random correlation
+"""
