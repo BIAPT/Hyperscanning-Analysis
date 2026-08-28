@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 """
 
 #blue amp
-mff_path = '/Volumes/NINET/Hyperscan/d01/sing_d01_pB.mff'
+mff_path = '/Volumes/Hyperscan/Hyperscanning/d02/test_d02_pB.mff'
 #grey amp
-raw_path = '/Volumes/NINET/Hyperscan/d01/sing_d01_pA.RAW'
+raw_path = '/Volumes/Hyperscan/Hyperscanning/d02/test_d02_pA.raw'
 
 #read files
 read_mff = mne.io.read_raw_egi(input_fname=mff_path)
-read_RAW = mne.io.read_raw_egi(input_fname=raw_path)
+read_raw = mne.io.read_raw_egi(input_fname=raw_path)
 
 """
 Use only one annotation from the participants
@@ -23,17 +23,16 @@ Use only one annotation from the participants
 """
 
 mff_annot = read_mff.annotations
-raw_annot = read_RAW.annotations
+raw_annot = read_raw.annotations
 
-#ignore this (keep only one DIN1 for RAW file)
-raw_annot.delete(list(range(1, len(raw_annot))))
-
-mff_start_time = mff_annot.onset[mff_annot.description == 'DIN1']
-raw_start_time = raw_annot.onset[raw_annot.description == 'DIN1']
+mff_din_time = mff_annot.onset[mff_annot.description == 'DIN1']
+raw_din_time = raw_annot.onset[raw_annot.description == 'DIN1']
+print(mff_din_time)
+print(raw_din_time)
 
 #crop the signal
-read_mff.crop(tmin=mff_start_time[0])
-read_RAW.crop(tmin=raw_start_time[0])
+read_mff.crop(tmin=mff_din_time[0], tmax=mff_din_time[1])
+read_raw.crop(tmin=raw_din_time[0], tmax=raw_din_time[1])
 
 #create a dictionary
 annot_dic = {
@@ -42,14 +41,15 @@ annot_dic = {
     'stry': '3___'
 }
 onset_dic = {}
+
+#create onset dictionary later used in hypyp
 for key,value in annot_dic.items():
     mask = (read_mff.annotations.description == value)
     onset_dic[key] = read_mff.annotations.onset[mask]
 
 print(onset_dic)
 data = read_mff.get_data()
-print(data[-5])
-read_RAW.plot(block=True)
+read_raw.plot(block=True)
 
 
 from hypyp import analyses
@@ -63,3 +63,9 @@ y constant & choose random point in x & swap first and second (spectral property
 Destropy time coreelation
 Real & random correlation
 """
+
+#test opening .raw + this works now
+
+#older (grey) amp doesn't use 1__ ask marks instead it just uses the actual string as the marker
+#maybe use the .raw as the reference & crop based on that for the .mff file
+#custom template (intergenerational_singing) must be used to get this marker

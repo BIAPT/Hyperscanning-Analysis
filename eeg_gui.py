@@ -47,7 +47,7 @@ class EEGApp(ctk.CTk):
         self.downsamp.grid(row=1,column=1,padx=10)
     
         #By default use these values
-        self.sample_freq.insert(0,"5000")
+        self.sample_freq.insert(0,"500")
         self.downsamp.insert(0,"250")
         
         self.montage_type = ctk.StringVar(value="standard_1020")

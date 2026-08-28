@@ -2,6 +2,7 @@ Important note for the Hyperscanning Experiment!
 
 When recording the data (hyperscanning), in the EEG room, 
 make sure the trigger/button is pressed once in the beginning and at the end.
+Make sure both signals are sampled at 500Hz!!
 
 When verifying the signal, DIN1 should be marked at the start & end
 

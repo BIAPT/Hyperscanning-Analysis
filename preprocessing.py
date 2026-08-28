@@ -296,7 +296,7 @@ def ica_remove_EOG():
     pass
 
 #Mutates the raw object
-def crop_signal(raw, samp_freq=5000):
+def crop_signal(raw, samp_freq):
     print(f"Raw information: {raw}")
     events, event_id = mne.events_from_annotations(raw)
     print(f"Events and corresponding id: {event_id}: {events}")
@@ -360,55 +360,65 @@ def main(input_dir, output_dir, sampling_freq, downsample_freq, montage):
     dropped = []
     folders = glob(f"{path}/*")
     epoch_num = []
-    for folder in sorted(folders)[7:8]:
-        ID = os.path.basename(folder).split("_")[1]
+    file_paths = []
+    #get the file paths
+    for file in sorted(folders):
+        if os.path.basename(file) == 'outputs':
+            continue
+        #here ID refers to dyad ID
+        ID = os.path.basename(file).split("_")[1]
         print(ID)
-        subfolders = sorted(glob(f"{folder}/*"))
-        #Subfolders ex. T0, T1, T2
-        print(subfolders)
-        for subfolder in subfolders:
-            time = os.path.basename(subfolder) #T0/T1/T2
-            #MNE Report
-            report_title = f"UBC_CARTBIND_{ID}_{time}"
-            report = mne.Report(title=report_title)
-            file = glob(f"{subfolder}/CBN02_{ID}_REST_EC_{time}_UBC.vhdr")
-            if file == []:
-                print(f"=======File is empty: Skipping {ID}=======")
-                continue
-            else:
-                print(f"=======Processing {ID} Time {time}=======")
-            """
-            Filter logic +
-            Artifact + other methods that change the raw signal
-            should come here
-            """    
-            file = glob(file[0])
-            raw = mne.io.read_raw_brainvision(file[0], preload=False)
-            #crop_signal may be different for different EEG recordings
-            crop_signal(raw=raw, samp_freq=sampling_freq)
-            raw.load_data()
-            set_montage(raw=raw, report=report, type=montage)
-            filtered_signal = filter_signal(raw=raw, report=report, downsample=downsample_freq)
-            cleaned_signal = ica_remove_HVEOG(signal=filtered_signal, report=report)
-            # cleaned_signal = remove_artifacts(signal=cleaned_signal, report=report)
-            if cleaned_signal == None:
-                dropped.append(f"{ID}_{time}")
-                continue
-            #Drop all bad channels (not needed for feature generations)
-            cleaned_signal.drop_channels(raw.info['bads'])
-            save_result(obj=cleaned_signal, save_path=f"{save_path}/{time}_filtered_eeg", 
-                        title=f"CBN02_{ID}_REST_EC_{time}_UBC_filtered_eeg.fif", overwrite=True)
-            
-            set_reference(signal=cleaned_signal, report=report)
-            epochs = generate_epoch(signal=cleaned_signal, report=report)
-            ar_epochs = reject_epoch(epochs=epochs, report=report)
-            report.save(fname=f"{save_path}/Reports/{time}/{report_title}_report.html", overwrite=True)
-            #Save epoch
-            save_result(obj=ar_epochs, save_path=f"{save_path}/{time}_epoch", 
-                        title=f"CBN02_{ID}_REST_EC_{time}_UBC_epo.fif", overwrite=True)
-            #Save mne Report
-            save_result(obj=report, save_path=f"{save_path}/Reports/{time}", 
-                        title=f"{report_title}_report.html", overwrite=True)
+        if not os.path.basename(file).endswith(('.mff', '.raw')): #did not know .mff was a dir format
+            continue
+        file_paths.append(file)
+    
+    #Handle two files at a time here
+    basename = os.path.basename(file)
+    #remove suffix 
+    file_name = os.path.splitext(basename)[0]
+    patient_ID = file_name.split("_")[-1]
+    #MNE Report
+    report_title = f"Hyperscan_{ID}_{patient_ID}"
+    report = mne.Report(title=report_title)
 
+    """Make sure the files are not empty"""
+    # if file == []:
+    #     print(f"=======File is empty: Skipping {ID}=======")
+    #     continue
+    # else:
+    #     print(f"=======Processing {ID} Time {patient_ID}=======")
+
+    """
+    Filter logic +
+    Artifact + other methods that change the raw signal
+    should come here
+    """    
+    raw = mne.io.read_raw_egi(file, preload=False)
+    crop_signal(raw=raw, samp_freq=sampling_freq)
+    raw.load_data()
+    set_montage(raw=raw, report=report, type=montage)
+    filtered_signal = filter_signal(raw=raw, report=report, downsample=downsample_freq)
+    cleaned_signal = ica_remove_HVEOG(signal=filtered_signal, report=report)
+
+    """Failed Cleaning???"""
+    # if cleaned_signal == None:
+    #     dropped.append(f"{ID}_{patient_ID}")
+    #     continue
+
+    #Drop all bad channels (not needed for feature generations)
+    cleaned_signal.drop_channels(raw.info['bads'])
+    save_result(obj=cleaned_signal, save_path=f"{save_path}", 
+                title=f"{ID}_{patient_ID}_filtered_eeg.fif", overwrite=True)
+    
+    set_reference(signal=cleaned_signal, report=report)
+    epochs = generate_epoch(signal=cleaned_signal, report=report)
+    ar_epochs = reject_epoch(epochs=epochs, report=report)
+    #Save epoch
+    save_result(obj=ar_epochs, save_path=f"{save_path}", 
+                title=f"{ID}_{patient_ID}_epo.fif", overwrite=True)
+    #Save mne Report
+    save_result(obj=report, save_path=f"{save_path}", 
+                title=f"{report_title}_report.html", overwrite=True)
+            
 if __name__ =="__main__":
     main()
