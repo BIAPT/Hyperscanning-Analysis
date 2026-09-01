@@ -10,6 +10,9 @@ import autoreject_bads as ar #custom autoreject
 from hypyp import prep
 import pandas as pd
 
+mne.viz.set_browser_backend('matplotlib')
+#Fix mne.Report for the autoreject section with HyPyP
+
 """
 Preprocessing steps
 GOAL:
@@ -151,21 +154,39 @@ def reject_epoch(epochs, report, n_interpolate=[1, 4, 8, 12], consensus=[0.1, 0.
 
 #h_trans_bandwidth=5
 def filter_signal(raw, report, l_freq=0.5, h_freq=45.0, notch=60, downsample=250):
-    # raw_filtered = raw.copy().filter(l_freq=l_freq, h_freq=h_freq).notch_filter(freqs=notch)
-    #Try this one
-    raw_filtered = raw.copy().filter(l_freq=l_freq, h_freq=h_freq, h_trans_bandwidth=5.0).notch_filter(freqs=notch)
-    filter_ds = raw_filtered.resample(downsample)
+    raw_filtered = raw[0].copy().filter(l_freq=l_freq, h_freq=h_freq, h_trans_bandwidth=5.0).notch_filter(freqs=notch)
+    mff_filtered = raw[1].copy().filter(l_freq=l_freq, h_freq=h_freq, h_trans_bandwidth=5.0).notch_filter(freqs=notch)
+    #ds both filtered signal 
+    filter_ds_raw = raw_filtered.resample(downsample)
+    filter_ds_mff = mff_filtered.resample(downsample)
     #Report downsampling
-    filter_ds.compute_psd(fmax=50).plot()
-    plt.show(block=True)
+
+    fig_raw_psd = filter_ds_raw.compute_psd(fmax=50).plot()
+    fig_raw_psd.canvas.manager.set_window_title('.raw PSD')
+
+    fig_mff_psd = filter_ds_mff.compute_psd(fmax=50).plot()
+    fig_mff_psd.canvas.manager.set_window_title('.mff PSD')
+    plt.show(block=False)
+
     #For manual bad channel selection
-    filter_ds.plot(block=True)
-    report.add_raw(
-        raw=filter_ds,
+    fig_raw_eeg = filter_ds_raw.plot()
+    fig_raw_eeg.canvas.manager.set_window_title('.raw EEG')
+    fig_mff_eeg = filter_ds_mff.plot()
+    fig_mff_eeg.canvas.manager.set_window_title('.mff PSD')
+    plt.show(block=True)
+
+    #report both
+    report['pA'].add_raw(
+        raw=filter_ds_raw,
         title="Filter First & Downsample",
         psd=True
     )
-    return filter_ds
+    report['pB'].add_raw(
+        raw=filter_ds_raw,
+        title="Filter First & Downsample",
+        psd=True
+    )
+    return filter_ds_raw, filter_ds_mff
 
 #Mutates the signal
 def set_reference(signal, report, ref='average'):
@@ -385,8 +406,7 @@ def main(input_dir, output_dir, sampling_freq, downsample_freq, montage):
     set_montage(raw=raw, report=id_dic['pA'], type=montage)
     set_montage(raw=mff, report=id_dic['pB'], type=montage)
 
-    filter_raw = filter_signal(raw=raw, report=id_dic['pA'], downsample=downsample_freq)
-    filter_mff = filter_signal(raw=mff, report=id_dic['pB'], downsample=downsample_freq)
+    filter_raw, filter_mff = filter_signal(raw=(raw, mff), report=id_dic, downsample=downsample_freq)
     print(id_dic)
 
     # cleaned_signal = ica_remove_HVEOG(signal=filtered_signal, report=report) should the hypyp ICA come here?
