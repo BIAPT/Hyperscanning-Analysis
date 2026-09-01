@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from autoreject import AutoReject #Auto rejecting bad epoch
 import autoreject_bads as ar #custom autoreject
+from hypyp import prep
 import pandas as pd
 
 """
@@ -297,48 +298,21 @@ def ica_remove_EOG():
 
 #Mutates the raw object
 def crop_signal(raw, samp_freq):
-    print(f"Raw information: {raw}")
-    events, event_id = mne.events_from_annotations(raw)
-    print(f"Events and corresponding id: {event_id}: {events}")
-    """
-    First row gives us the point where the recording started
-    Second row gives us the position where the event occurs
-    Third row gives us the position where the event ends
-    """
-    print(events.shape)
-    event_start_val = event_id.get("Comment/Start Eyes Closed ")
-    event_end_val = event_id.get("Comment/Stop Eyes Closed")
-
-    """Early exit"""
-    if event_end_val is None:
-        event_end_val = event_id.get("Comment/Start Eyes Open")
-    if event_end_val is None:
-        return None
-
-    #6db to 3db
-
-    start_idx = events[:,2].tolist().index(event_start_val)
-    end_idx = events[:,2].tolist().index(event_end_val)
-    event_start = events[start_idx, 0]
-    event_end = events[end_idx, 0]
-
-    print(f"Event begins: {event_start}")
-    print(f"Event ends: {event_end}")
-
-    """Trim the eeg signal"""
-    samp_freq = samp_freq
-    t_start = event_start/samp_freq
-    t_end = event_end/samp_freq
-    raw.crop(tmin=t_start, tmax=t_end)
+    annotations = raw.annotations
+    din_time = annotations.onset[annotations.description == 'DIN1']
+    raw.crop(tmin=din_time[0], tmax=din_time[1])
 
 #Mutates the raw object
 def set_montage(raw, report, type='standard_1020'):
-    montage = mne.channels.make_standard_montage(type)
+    # montage = mne.channels.make_standard_montage(type)
+    montage = mne.channels.make_standard_montage('GSN-HydroCel-64_1.0') #double check this tmr
     #To make this work for everything this needs to change
-    mapping ={ #This is only for CARTBIND dataset
-        'FPz':'Fpz'
-    }
-    raw.rename_channels(mapping=mapping)
+    # mapping ={ #This is only for CARTBIND dataset
+    #     'FPz':'Fpz'
+    # }
+    if 'VREF' in raw.ch_names:
+        raw.set_channel_types({'VREF': 'misc'})
+    # raw.rename_channels(mapping=mapping)
     raw.set_montage(montage=montage, on_missing='warn')
     fig = raw.plot_sensors(show_names=True)
     report.add_figure(
@@ -361,6 +335,7 @@ def main(input_dir, output_dir, sampling_freq, downsample_freq, montage):
     folders = glob(f"{path}/*")
     epoch_num = []
     file_paths = []
+    id_dic = {}
     #get the file paths
     for file in sorted(folders):
         if os.path.basename(file) == 'outputs':
@@ -371,15 +346,18 @@ def main(input_dir, output_dir, sampling_freq, downsample_freq, montage):
         if not os.path.basename(file).endswith(('.mff', '.raw')): #did not know .mff was a dir format
             continue
         file_paths.append(file)
-    
-    #Handle two files at a time here
-    basename = os.path.basename(file)
-    #remove suffix 
-    file_name = os.path.splitext(basename)[0]
-    patient_ID = file_name.split("_")[-1]
-    #MNE Report
-    report_title = f"Hyperscan_{ID}_{patient_ID}"
-    report = mne.Report(title=report_title)
+
+        #Handle two files at a time here (How to handle pA & pB differently?)
+        #+ change the folder structure in the README (has changed)
+        basename = os.path.basename(file)
+        #remove suffix 
+        file_name = os.path.splitext(basename)[0]
+        patient_ID = file_name.split("_")[-1]
+        #MNE Report
+        report_title = f"Hyperscan_{ID}_{patient_ID}"
+        report = mne.Report(title=report_title)
+        id_dic[patient_ID] = report
+
 
     """Make sure the files are not empty"""
     # if file == []:
@@ -392,13 +370,26 @@ def main(input_dir, output_dir, sampling_freq, downsample_freq, montage):
     Filter logic +
     Artifact + other methods that change the raw signal
     should come here
-    """    
-    raw = mne.io.read_raw_egi(file, preload=False)
+    """   
+    raw_file = file_paths[0]
+    mff_file = file_paths[1]
+
+    raw = mne.io.read_raw_egi(raw_file, preload=False)
+    mff = mne.io.read_raw_egi(mff_file, preload=False)
+    
     crop_signal(raw=raw, samp_freq=sampling_freq)
+    crop_signal(raw=mff, samp_freq=sampling_freq)
     raw.load_data()
-    set_montage(raw=raw, report=report, type=montage)
-    filtered_signal = filter_signal(raw=raw, report=report, downsample=downsample_freq)
-    cleaned_signal = ica_remove_HVEOG(signal=filtered_signal, report=report)
+    mff.load_data()
+    print(id_dic)
+    set_montage(raw=raw, report=id_dic['pA'], type=montage)
+    set_montage(raw=mff, report=id_dic['pB'], type=montage)
+
+    filter_raw = filter_signal(raw=raw, report=id_dic['pA'], downsample=downsample_freq)
+    filter_mff = filter_signal(raw=mff, report=id_dic['pB'], downsample=downsample_freq)
+    print(id_dic)
+
+    # cleaned_signal = ica_remove_HVEOG(signal=filtered_signal, report=report) should the hypyp ICA come here?
 
     """Failed Cleaning???"""
     # if cleaned_signal == None:
@@ -406,19 +397,124 @@ def main(input_dir, output_dir, sampling_freq, downsample_freq, montage):
     #     continue
 
     #Drop all bad channels (not needed for feature generations)
-    cleaned_signal.drop_channels(raw.info['bads'])
-    save_result(obj=cleaned_signal, save_path=f"{save_path}", 
-                title=f"{ID}_{patient_ID}_filtered_eeg.fif", overwrite=True)
+    filter_raw.drop_channels(raw.info['bads'])
+    filter_mff.drop_channels(mff.info['bads'])
+
     
-    set_reference(signal=cleaned_signal, report=report)
-    epochs = generate_epoch(signal=cleaned_signal, report=report)
-    ar_epochs = reject_epoch(epochs=epochs, report=report)
-    #Save epoch
-    save_result(obj=ar_epochs, save_path=f"{save_path}", 
-                title=f"{ID}_{patient_ID}_epo.fif", overwrite=True)
+    save_result(obj=filter_raw, save_path=f"{save_path}", 
+                title=f"{ID}_pA_filtered_eeg.fif", overwrite=True)
+    save_result(obj=filter_mff, save_path=f"{save_path}", 
+                    title=f"{ID}_pB_filtered_eeg.fif", overwrite=True)
+    
+    set_reference(signal=filter_raw, report=id_dic['pA'])
+    set_reference(signal=filter_mff, report=id_dic['pB'])
+
+    epochs_raw = generate_epoch(signal=filter_raw, report=id_dic['pA'], duration=2)
+    epochs_mff = generate_epoch(signal=filter_mff, report=id_dic['pB'], duration=2)
+
+    """Hypyp ICA + Autoreject come here"""
+    #make sure the epoch count is the same
+    assert epochs_raw.info['sfreq'] == epochs_mff.info['sfreq']
+    #redorder the channels
+    ch_order = sorted(epochs_mff.ch_names)
+    epochs_raw.reorder_channels(ch_order)
+    epochs_mff.reorder_channels(ch_order)
+
+    min_rank = min(len(mne.pick_types(epochs_raw.info, eeg=True, meg=False, exclude='bads'))-1,
+                len(mne.pick_types(epochs_mff.info, eeg=True, meg=False, exclude='bads'))-1)
+    print("Using min rank: ", min_rank)
+    icas = prep.ICA_fit([
+        epochs_raw, epochs_mff
+    ],
+        n_components=min_rank,
+        method='infomax',
+        fit_params=dict(extended=True),
+        random_state=42
+    )
+
+    #Select the relevant independent components for artefact rejection
+    cleaned_epochs_ICA = prep.ICA_choice_comp(icas, [epochs_raw, epochs_mff])
+    print('ICA correction completed.')
+
+    #save mne Report
+    subjects = ["pA", "pB"]
+    for idx, subj in enumerate(subjects):
+        ica = icas[idx]
+        epochs_clean = cleaned_epochs_ICA[idx]
+
+        # Plot ICA properties / topographies of excluded components
+        if len(ica.exclude) > 0:
+            fig_ica_exclude = ica.plot_components(
+                picks=ica.exclude, show=False, title=f"Excluded ICs ({subj})"
+            )
+            id_dic[subj].add_figure(
+                fig=fig_ica_exclude,
+                title="ICA Excluded Components",
+                caption=f"Excluded IC indices: {ica.exclude}",
+                image_format="png",
+            )
+            plt.close(fig_ica_exclude)
+
+    #Apply Autoreject
+    cleaned_epochs_AR, dic_AR = prep.AR_local(
+        cleaned_epochs_ICA,
+        strategy="union",
+        threshold=50.0,
+        verbose=True
+    )
+    #save autoreject report
+    print(dic_AR.keys())
+    for idx, subj in enumerate(subjects):
+        if subj == 'pA':
+            sub = 'S1'
+        else:
+            sub = 'S2'
+        epochs_ar = cleaned_epochs_AR[idx]
+        ar_log = dic_AR[sub]  # Autoreject log/dictionary for this participant
+
+        # Add Epoch drop log figure (shows which epochs/channels were dropped by AR)
+        fig_drop = epochs_ar.plot_drop_log(show=False)
+        id_dic[subj].add_figure(
+            fig=fig_drop,
+            title="Autoreject Drop Log",
+            caption=f"Percentage of dropped epochs: {epochs_ar.drop_log_stats():.1f}%",
+            image_format="png",
+        )
+        plt.close(fig_drop)
+
+        # Optional: Plot sample clean epoch traces
+        fig_epochs = epochs_ar.plot(
+            n_epochs=5, n_channels=20, show=False, title=f"Cleaned Epochs ({subj})"
+        )
+        id_dic[subj].add_figure(
+            fig=fig_epochs,
+            title="Post-Autoreject Signal Traces",
+            caption="First 5 epochs following ICA and Autoreject cleanup",
+            image_format="png",
+        )
+        plt.close(fig_epochs)
+
+    print(type(cleaned_epochs_AR))
+    participant_1 = cleaned_epochs_AR[0]
+    participant_2 = cleaned_epochs_AR[1]
+    print(type(cleaned_epochs_AR[0]))
+
+
+    # ar_epochs = reject_epoch(epochs=epochs, report=report)
+    # #Save epoch
+    save_result(obj=participant_1, save_path=f"{save_path}", 
+                title=f"{ID}_pA_epo.fif", overwrite=True)
+    save_result(obj=participant_2, save_path=f"{save_path}", 
+                    title=f"{ID}_pB_epo.fif", overwrite=True)
+
+    #check if dir exists
+    if not os.path.isdir(f'{save_path}/Reports'):
+        os.makedirs(f'{save_path}/Reports', exist_ok=True)
     #Save mne Report
-    save_result(obj=report, save_path=f"{save_path}", 
-                title=f"{report_title}_report.html", overwrite=True)
+    save_result(obj=id_dic['pA'], save_path=f"{save_path}/Reports", 
+                title=f"{ID}_pA_report.html", overwrite=True)
+    save_result(obj=id_dic['pB'], save_path=f"{save_path}/Reports", 
+                    title=f"{ID}_pB_report.html", overwrite=True)
             
 if __name__ =="__main__":
     main()
