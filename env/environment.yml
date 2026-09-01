@@ -1,5 +1,6 @@
 name: hyper
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - python=3.12
@@ -7,4 +8,4 @@ dependencies:
   - neurokit2
   - antio
   - defusedxml
-prefix: /Users/andrewlee/miniconda3/envs/hyper
+# prefix: /Users/andrewlee/miniconda3/envs/hyper
