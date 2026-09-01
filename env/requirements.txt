@@ -1,88 +1,89 @@
-antio @ file:///Users/runner/miniforge3/conda-bld/antio_1784882550411/work
+antio==0.7.1
 autoreject==0.4.4
-backports.zstd @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_backports.zstd_1781450816/work
-Brotli @ file:///opt/miniconda3/conda-bld/brotli-split_1762363408113/work
+backports.zstd==1.6.0
+Brotli==1.2.0
 certifi==2026.6.17
 cftime==1.6.5
-charset-normalizer @ file:///home/conda/feedstock_root/build_artifacts/charset-normalizer_1783505251992/work
-click @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_click_1783085363/work
-colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1733218098505/work
-contourpy @ file:///opt/miniconda3/conda-bld/contourpy_1763643921207/work
+charset-normalizer==3.4.9
+click==8.4.2
+colorama==0.4.6
+contourpy==1.3.3
 customtkinter==6.0.0
-cycler @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_cycler_1764466758/work
-darkdetect @ file:///home/conda/feedstock_root/build_artifacts/darkdetect_1734328074983/work
-decorator @ file:///home/conda/feedstock_root/build_artifacts/decorator_1779115150916/work
-defusedxml @ file:///home/conda/feedstock_root/build_artifacts/defusedxml_1615232257335/work
-flatbuffers @ file:///home/conda/feedstock_root/build_artifacts/python-flatbuffers_1784052940365/work/python
-fonttools @ file:///home/conda/feedstock_root/build_artifacts/fonttools_1778770239222/work
-h2 @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_h2_1785796355/work
+cycler==0.12.1
+darkdetect==0.8.0
+decorator==5.3.1
+defusedxml==0.7.1
+flatbuffers==25.12.19
+fonttools==4.63.0
+h2==4.4.1
 h5io==0.2.5
 h5py==3.16.0
-hpack @ file:///home/conda/feedstock_root/build_artifacts/hpack_1782283902770/work
-hyperframe @ file:///home/conda/feedstock_root/build_artifacts/hyperframe_1737618333194/work
+hpack==4.2.0
+hyperframe==6.1.0
 hypyp==0.6.0
-idna @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_idna_1781620148/work
+idna==3.18
 ImageIO==2.37.4
 importlib_resources==7.1.0
-Jinja2 @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_jinja2_1764517220/work
-joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1765794027227/work
+Jinja2==3.1.6
+joblib==1.5.3
 kiwisolver==1.5.0
-lazy-loader @ file:///home/conda/feedstock_root/build_artifacts/lazy-loader_1772817235966/work
+lazy-loader==0.5
 markdown-it-py==4.2.0
-MarkupSafe @ file:///home/conda/feedstock_root/build_artifacts/markupsafe_1772444939814/work
+MarkupSafe==3.0.3
 matplotlib==3.11.1
 mdurl==0.1.2
 meshio==5.3.5
 mistune==3.3.3
-mne @ file:///Users/runner/miniforge3/conda-bld/mne-python_1776711854761/work
+mne==1.12.1
 mne-connectivity==0.8.1
-mne-icalabel @ file:///home/conda/feedstock_root/build_artifacts/mne-icalabel_1779286157155/work
-mne-qt-browser @ file:///home/conda/feedstock_root/build_artifacts/mne-qt-browser_1779118576412/work
+mne-icalabel==0.9.0
+mne-qt-browser==0.7.5
 munkres==1.1.4
-narwhals @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_narwhals_1783943716/work
+narwhals==2.24.0
 netCDF4==1.7.4
 networkx==3.6.1
-neurokit2 @ file:///home/conda/feedstock_root/build_artifacts/neurokit2_1773507875815/work
-numexpr @ file:///Users/ec2-user/croot/numexpr_1776269925185/work
-numpy @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_numpy_1783206218/work/dist/numpy-2.5.1-cp312-cp312-macosx_11_0_arm64.whl#sha256=08fc1e9e9a36b2ef21e94644378d56bee58e529a9dc11e3391497cbc284f5686
-onnxruntime @ file:///Users/runner/miniforge3/conda-bld/onnxruntime_1784993463622/work/build-ci/Release/dist/onnxruntime-1.26.0-cp312-cp312-macosx_11_0_arm64.whl#sha256=15d4c5377badb166004f49af687f5c44a92dca5104f892388e5fbb98401c1849
+neurokit2==0.2.13
+numexpr==2.14.1
+numpy==2.5.1
+onnxruntime==1.26.0
 packaging==26.0
-pandas @ file:///Users/ec2-user/croot/pandas_1785760214170/work
+pandas==3.0.5
 patsy==1.0.2
-pillow @ file:///Users/ec2-user/croot/pillow_1783978870896/work
+pillow==12.3.0
+pip==26.1.2
 platformdirs==4.10.1
-pooch @ file:///home/conda/feedstock_root/build_artifacts/pooch_1769816439145/work
-protobuf @ file:///Users/runner/miniforge3/conda-bld/protobuf_1781355976827/work/bazel-bin/python/dist/protobuf-7.35.1-cp312-abi3-macosx_11_0_arm64.whl#sha256=b4e1e693ce39b1a57e45c3f29607f99b9e614a88715534929bc99dffb569baea
-psutil @ file:///Users/ec2-user/croot/psutil_1784875182473/work
+pooch==1.9.0
+protobuf==7.35.1
+psutil==7.2.2
 pyarrow==25.0.0
 Pygments==2.20.0
 pymatreader==1.2.3
-pyparsing @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_pyparsing_1769003998/work
-pyqtgraph @ file:///home/conda/feedstock_root/build_artifacts/pyqtgraph_1763549747586/work
-PySocks @ file:///home/conda/feedstock_root/build_artifacts/pysocks_1733217236728/work
-python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_python-dateutil_1751104122/work
-python-picard @ file:///home/conda/feedstock_root/build_artifacts/python-picard_1764609058156/work
-PyWavelets @ file:///Users/ec2-user/croot/pywavelets_1771517615028/work
+pyparsing==3.3.2
+pyqtgraph==0.14.0
+PySocks==1.7.1
+python-dateutil==2.9.0.post0
+python-picard==0.8.1
+PyWavelets==1.9.0
 pyxdf==1.17.5
-QDarkStyle @ file:///home/conda/feedstock_root/build_artifacts/qdarkstyle_1736088649807/work
-QtPy @ file:///home/conda/feedstock_root/build_artifacts/qtpy_1749167083742/work
-requests @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_requests_1778851103/work
+QDarkStyle==3.2.3
+QtPy==2.4.3
+requests==2.34.2
 rich==15.0.0
 scikit-image==0.26.0
-scikit-learn @ file:///Users/ec2-user/croot/scikit-learn_1781530272633/work
-scipy @ file:///Users/runner/miniforge3/conda-bld/scipy-split_1781912202945/work/dist/scipy-1.18.0-cp312-cp312-macosx_11_0_arm64.whl#sha256=9c7828ad45103cde1b0196c257ba7faf68e89b41198d3ff49a9c13acae224932
-scooby @ file:///home/conda/feedstock_root/build_artifacts/scooby_1776994980540/work
+scikit-learn==1.9.0
+scipy==1.18.0
+scooby==0.11.2
 seaborn==0.13.2
 setuptools==83.0.0
-six @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_six_1753199211/work
+six==1.17.0
 snirf==0.8.0
 statsmodels==0.14.6
 termcolor==3.3.0
-threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1741878222898/work
+threadpoolctl==3.6.0
 tifffile==2026.7.14
-tqdm @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_tqdm_1785172528/work
-unicodedata2 @ file:///Users/ec2-user/croot/unicodedata2_1784193849483/work
-urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1778188571305/work
+tqdm==4.70.0
+unicodedata2==17.0.1
+urllib3==2.7.0
 wheel==0.47.0
 xarray==2026.7.0
 xmltodict==1.0.4
